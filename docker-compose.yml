@@ -1,0 +1,25 @@
+# Loyiha nomi aniq — bir serverdagi boshqa compose loyihalari bilan aralashmaydi
+name: tg-code-gateway
+
+services:
+  gateway:
+    build: .
+    container_name: tg-code-gateway
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PORT: 8080
+      DATABASE_PATH: /data/gateway.db
+    # Faqat serverning o'zida ochiq; tashqariga https reverse proxy (nginx/Caddy) orqali chiqariladi
+    ports:
+      - "127.0.0.1:${HOST_PORT:-8080}:8080"
+    volumes:
+      - gateway-data:/data
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+volumes:
+  gateway-data:
