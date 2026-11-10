@@ -62,6 +62,20 @@ Compose loyihasining nomi `tg-code-gateway`, konteyner ham shunday nomlanadi. Sh
 boshqa loyihalar bilan aralashmaydi. Port faqat `127.0.0.1` da ochiladi. Hostdagi port `.env` dagi
 `HOST_PORT` bilan beriladi (standart 8080). Baza `tg-code-gateway_gateway-data` volume'ida turadi.
 
+Birinchi marta serverga qo'yish:
+
+```bash
+git clone https://github.com/Bekmuhammad-Devoloper/tg-gateway.git /opt/tg-code-gateway/app
+cd /opt/tg-code-gateway/app && cp .env.example .env   # BOT_TOKEN, HOST_PORT, PUBLIC_URL ni yozing
+docker compose up -d --build
+```
+
+Keyin har yangilashda — kodni GitHub'ga push qilib, serverda:
+
+```bash
+sh /opt/tg-code-gateway/app/deploy.sh   # git pull + qayta qurish; baza saqlanadi
+```
+
 https bo'lmasa (masalan, domen hali tayyor emas), panelga SSH tunnel orqali kiriladi:
 
 ```bash
