@@ -9,13 +9,16 @@ import { Projects } from './pages/Projects';
 import { Settings } from './pages/Settings';
 import { Icon, Spinner, type IconName } from './ui';
 
-const TABS: Array<{ id: string; label: string; icon: IconName }> = [
-  { id: 'home', label: 'Bosh sahifa', icon: 'home' },
-  { id: 'projects', label: 'Loyihalar', icon: 'projects' },
-  { id: 'contacts', label: 'Foydalanuvchilar', icon: 'users' },
-  { id: 'history', label: 'Kodlar', icon: 'history' },
-  { id: 'settings', label: 'Sozlamalar', icon: 'settings' },
+const TABS: Array<{ id: string; label: string; short: string; icon: IconName; sub: string }> = [
+  { id: 'home', label: 'Bosh sahifa', short: 'Bosh', icon: 'home', sub: 'Bugungi holat bir qarashda' },
+  { id: 'projects', label: 'Loyihalar', short: 'Loyihalar', icon: 'projects', sub: 'API kalitlar va xabar shablonlari' },
+  { id: 'contacts', label: 'Foydalanuvchilar', short: 'Odamlar', icon: 'users', sub: 'Telegram’ga ulangan raqamlar' },
+  { id: 'history', label: 'Kodlar', short: 'Kodlar', icon: 'history', sub: 'Har bir so‘rov va uning holati' },
+  { id: 'settings', label: 'Sozlamalar', short: 'Sozlamalar', icon: 'settings', sub: 'Bot matnlari, adminlar va API' },
 ];
+
+const MONTHS = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr'];
+const today = () => { const d = new Date(); return `${d.getDate()}-${MONTHS[d.getMonth()]}`; };
 
 const tabFromHash = (): string => {
   const id = location.hash.replace(/^#\/?/, '');
@@ -127,11 +130,16 @@ export function App() {
 
       <main className="main">
         <header className="topbar">
-          <h1>{current.label}</h1>
-          <span className="muted topbar-bot">@{me.bot}</span>
+          <div className="min0">
+            <h1>{current.label}</h1>
+            <span className="muted topbar-sub">{tab === 'home' ? `Bugun, ${today()}` : current.sub}</span>
+          </div>
+          <button className="me-chip" onClick={() => go('settings')} aria-label="Sozlamalar">
+            <span className="me-avatar">{(me.name || 'A').slice(0, 1).toUpperCase()}</span>
+          </button>
         </header>
-        <div className="content">
-          {tab === 'home' && <Dashboard onGo={go} />}
+        <div className="content page" key={tab}>
+          {tab === 'home' && <Dashboard me={me} onGo={go} />}
           {tab === 'projects' && <Projects />}
           {tab === 'contacts' && <Contacts />}
           {tab === 'history' && <Deliveries />}
@@ -139,11 +147,13 @@ export function App() {
         </div>
       </main>
 
-      <nav className="tabbar">
+      <nav className="tabbar" aria-label="Bo‘limlar">
         {TABS.map(t => (
           <button key={t.id} className={`tab ${t.id === tab ? 'active' : ''}`} onClick={() => go(t.id)} aria-current={t.id === tab ? 'page' : undefined}>
-            <Icon name={t.icon} size={22} />
-            <span>{t.id === 'contacts' ? 'Odamlar' : t.label.split(' ')[0]}</span>
+            <span className="tab-icon">
+              <Icon name={t.icon} size={21} />
+            </span>
+            <span>{t.short}</span>
           </button>
         ))}
       </nav>

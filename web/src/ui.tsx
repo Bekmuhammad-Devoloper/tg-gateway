@@ -26,6 +26,7 @@ const PATHS = {
   alert: 'M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0',
   telegram: 'M21.5 4.5 2.8 11.7c-.9.4-.9 1.5 0 1.8l4.6 1.5 1.8 5.6c.2.7 1.1.9 1.6.4l2.6-2.4 4.8 3.5c.6.4 1.4.1 1.6-.6l3.3-15.5c.2-.9-.7-1.6-1.6-1.5zM9.5 14.5l8.3-6.3',
   lock: 'M5 11h14v10H5zM8 11V7a4 4 0 1 1 8 0v4',
+  chevron: 'M9 6l6 6-6 6',
 } as const;
 
 export type IconName = keyof typeof PATHS;
@@ -222,6 +223,34 @@ export function fmtAgo(iso: string | null | undefined): string {
   if (sec < 3600) return `${Math.floor(sec / 60)} daqiqa oldin`;
   if (sec < 86_400) return `${Math.floor(sec / 3600)} soat oldin`;
   return fmtDate(iso);
+}
+
+/** Son 0 dan kerakli qiymatgacha silliq sanalib chiqadi (harakat kamaytirilgan bo'lsa — darhol) */
+export function useCountUp(target: number, duration = 700): number {
+  const [value, setValue] = useState(0);
+  const from = useRef(0);
+  useEffect(() => {
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const start = from.current;
+    if (reduce || start === target) {
+      from.current = target;
+      setValue(target);
+      return;
+    }
+    const began = performance.now();
+    let frame = 0;
+    const step = (now: number) => {
+      const k = Math.min(1, (now - began) / duration);
+      const eased = 1 - Math.pow(1 - k, 3);
+      const next = Math.round(start + (target - start) * eased);
+      setValue(next);
+      if (k < 1) frame = requestAnimationFrame(step);
+      else from.current = target;
+    };
+    frame = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frame);
+  }, [target, duration]);
+  return value;
 }
 
 export const errorText = (e: unknown): string => (e instanceof Error ? e.message : 'Xatolik yuz berdi');

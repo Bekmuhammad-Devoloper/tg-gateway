@@ -1,0 +1,600 @@
+/* =============================================================================================
+   Jonli ko'rinish: yumshoq nur, gradientli bot kartasi, navbat bilan paydo bo'lish, suzuvchi menyu.
+   styles.css dan keyin ulanadi va uning ustidan yozadi.
+   ============================================================================================= */
+
+:root {
+  --violet: #8b5cf6;
+  --grad: linear-gradient(135deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 45%, var(--violet)) 100%);
+  --shadow: 0 1px 0 color-mix(in srgb, #fff 4%, transparent) inset, 0 10px 30px -18px rgb(0 0 0 / 0.45);
+  --radius: 20px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+body {
+  background:
+    radial-gradient(900px 420px at 0% -8%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 62%),
+    radial-gradient(700px 380px at 100% -4%, color-mix(in srgb, var(--violet) 12%, transparent), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+}
+
+/* sichqoncha bilan bosilganda ramka chiqmaydi; klaviaturada aniq ko'rinadi */
+button:focus,
+a:focus {
+  outline: none;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---- paydo bo'lish ---- */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@keyframes grow-up {
+  from {
+    transform: scaleY(0);
+  }
+}
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+@keyframes live-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgb(52 211 153 / 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgb(52 211 153 / 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgb(52 211 153 / 0);
+  }
+}
+@keyframes float {
+  50% {
+    transform: translateY(-4px);
+  }
+}
+.page > * {
+  animation: fade-up 0.45s var(--ease) both;
+}
+.page > *:nth-child(2) {
+  animation-delay: 40ms;
+}
+.page > *:nth-child(3) {
+  animation-delay: 80ms;
+}
+.reveal {
+  animation: fade-up 0.5s var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 55ms);
+}
+.grow-up {
+  transform-origin: bottom;
+  animation: grow-up 0.6s var(--ease) both;
+}
+
+/* ---- karkas ---- */
+.topbar {
+  align-items: center;
+  padding: 18px 16px 14px;
+  background: transparent;
+  backdrop-filter: none;
+}
+.topbar h1 {
+  font-size: 26px;
+  letter-spacing: -0.02em;
+}
+.topbar-sub {
+  display: block;
+  margin-top: 2px;
+  font-size: 13.5px;
+}
+.me-chip {
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.me-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  color: #fff;
+  background: var(--grad);
+  box-shadow: 0 6px 18px -6px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+.main {
+  padding-bottom: calc(104px + env(safe-area-inset-bottom));
+}
+@media (min-width: 900px) {
+  .main {
+    padding-bottom: 0;
+  }
+  .topbar {
+    padding: 28px 32px 18px;
+  }
+  .me-chip {
+    display: none;
+  }
+}
+
+/* suzuvchi «shisha» menyu */
+.tabbar {
+  left: 12px;
+  right: 12px;
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  padding: 6px;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  box-shadow: 0 18px 40px -16px rgb(0 0 0 / 0.5);
+}
+.tab {
+  gap: 3px;
+  padding: 6px 0 5px;
+  border-radius: 18px;
+  font-size: 10.5px;
+  transition: color 0.2s;
+}
+.tab-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 30px;
+  border-radius: 15px;
+  transition: background 0.25s var(--ease), transform 0.25s var(--ease);
+}
+.tab.active .tab-icon {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  transform: translateY(-1px);
+}
+.tab:active .tab-icon {
+  transform: scale(0.92);
+}
+.nav-item.active {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.brand-mark,
+.login-mark,
+.project-mark,
+.empty-icon {
+  background: var(--grad);
+  color: #fff;
+}
+.brand-mark {
+  box-shadow: 0 8px 20px -8px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+/* ---- kartalar va tugmalar ---- */
+.card {
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.search,
+.filters select {
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+.btn {
+  border-radius: 12px;
+  transition: transform 0.15s var(--ease), filter 0.15s, box-shadow 0.2s;
+}
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.btn.primary {
+  background: var(--grad);
+  box-shadow: 0 8px 20px -10px color-mix(in srgb, var(--accent) 80%, transparent);
+}
+.link-card {
+  transition: transform 0.2s var(--ease), border-color 0.2s;
+}
+.link-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+}
+.link-card > svg:last-child {
+  color: var(--hint);
+  flex-shrink: 0;
+}
+.link-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+.avatar {
+  color: #fff;
+  background: var(--grad);
+}
+.list-row {
+  transition: background 0.15s;
+}
+.list-row:hover {
+  background: color-mix(in srgb, var(--hint) 6%, transparent);
+}
+.card.list {
+  padding: 6px 0;
+  overflow: hidden;
+}
+
+/* ---- bot kartasi (bosh sahifa) ---- */
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: 20px;
+  border-radius: 24px;
+  color: #fff;
+  background: var(--grad);
+  box-shadow: 0 20px 44px -22px color-mix(in srgb, var(--accent) 85%, transparent);
+}
+.hero-glow {
+  position: absolute;
+  right: -30%;
+  bottom: -60%;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(255 255 255 / 0.28), transparent 65%);
+  pointer-events: none;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  top: -40px;
+  left: -30px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(255 255 255 / 0.12), transparent 70%);
+  pointer-events: none;
+}
+.hero-top {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.bot-avatar {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: rgb(255 255 255 / 0.18);
+  border: 1px solid rgb(255 255 255 / 0.28);
+  animation: float 4s ease-in-out infinite;
+}
+.live-dot {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #34d399;
+  border: 2.5px solid color-mix(in srgb, var(--accent) 60%, var(--violet));
+}
+.hero-bot {
+  display: block;
+  font-size: 17px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hero-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 2px;
+  font-size: 13px;
+  color: rgb(255 255 255 / 0.85);
+}
+.pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #34d399;
+  animation: live-pulse 1.8s infinite;
+  flex-shrink: 0;
+}
+.hero-numbers {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 18px;
+}
+.hero-numbers > div:first-child {
+  display: flex;
+  flex-direction: column;
+}
+.hero-big {
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.hero-label {
+  font-size: 13px;
+  color: rgb(255 255 255 / 0.8);
+}
+.hero-rate {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hero-rate > div {
+  display: flex;
+  flex-direction: column;
+}
+.hero-rate-value {
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.ring {
+  width: 52px;
+  height: 52px;
+  transform: rotate(-90deg);
+}
+.ring circle {
+  fill: none;
+  stroke-width: 4;
+}
+.ring-track {
+  stroke: rgb(255 255 255 / 0.22);
+}
+.ring-fill {
+  stroke: #fff;
+  stroke-linecap: round;
+}
+.hero-actions {
+  position: relative;
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+.chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid rgb(255 255 255 / 0.28);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.16);
+  color: #fff;
+  font: 600 13.5px var(--font);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+.chip-btn:hover {
+  background: rgb(255 255 255 / 0.26);
+}
+.chip-btn:active {
+  transform: scale(0.96);
+}
+.hero-open {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: #fff;
+  background: rgb(255 255 255 / 0.16);
+  border: 1px solid rgb(255 255 255 / 0.28);
+  transition: background 0.2s, transform 0.15s;
+}
+.hero-open:hover {
+  background: rgb(255 255 255 / 0.26);
+}
+.hero-open:active {
+  transform: scale(0.94);
+}
+
+/* ---- ko'rsatkichlar ---- */
+.tile {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--tone, var(--accent)) 9%, var(--surface)) 0%, var(--surface) 70%);
+}
+.tile::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: var(--tone, var(--accent));
+  opacity: 0.85;
+}
+.tile.tone-info {
+  --tone: var(--info);
+}
+.tile.tone-good {
+  --tone: var(--good);
+}
+.tile.tone-warn {
+  --tone: var(--warn);
+}
+.tile.tone-bad {
+  --tone: var(--bad);
+}
+.tile-value {
+  font-size: 32px;
+  font-weight: 800;
+}
+.tile-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+}
+
+/* ---- grafik ---- */
+.xaxis span.today {
+  color: var(--accent);
+  font-weight: 700;
+}
+.col.today {
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+
+/* ---- so'nggi kodlar ---- */
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: 600 14px var(--font);
+  cursor: pointer;
+}
+.feed {
+  display: flex;
+  flex-direction: column;
+}
+.feed-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+}
+.feed-row + .feed-row {
+  border-top: 1px solid var(--border);
+}
+.feed-row > .grow {
+  display: flex;
+  flex-direction: column;
+}
+.feed-sub {
+  font-size: 12.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.feed-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.feed-icon.ok {
+  color: var(--info);
+  background: color-mix(in srgb, var(--info) 14%, transparent);
+}
+.feed-icon.wait {
+  color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 15%, transparent);
+}
+.feed-icon.bad {
+  color: var(--bad);
+  background: color-mix(in srgb, var(--bad) 13%, transparent);
+}
+.ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.empty-line {
+  padding: 10px 0 4px;
+  font-size: 14px;
+}
+
+/* ---- yuklanish skeleti ---- */
+.skeleton {
+  border-radius: 18px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--hint) 9%, transparent) 0%,
+    color-mix(in srgb, var(--hint) 18%, transparent) 50%,
+    color-mix(in srgb, var(--hint) 9%, transparent) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.3s linear infinite;
+}
+
+/* ---- kirish ---- */
+.login {
+  border-radius: 26px;
+  box-shadow: 0 30px 60px -30px rgb(0 0 0 / 0.5);
+  animation: fade-up 0.5s var(--ease) both;
+}
+.login-mark {
+  width: 72px;
+  height: 72px;
+  border-radius: 24px;
+  box-shadow: 0 14px 30px -12px color-mix(in srgb, var(--accent) 80%, transparent);
+  animation: float 4s ease-in-out infinite;
+}
+.steps li > span {
+  color: #fff;
+  background: var(--grad);
+}
+
+/* ---- loyihalar, oynalar ---- */
+.project {
+  transition: border-color 0.2s;
+}
+.project:hover {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+}
+.project-mark {
+  border-radius: 14px;
+  box-shadow: 0 8px 18px -10px color-mix(in srgb, var(--accent) 80%, transparent);
+}
+.switch.on {
+  background: var(--grad);
+}
+.modal {
+  box-shadow: 0 -20px 60px -20px rgb(0 0 0 / 0.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bot-avatar,
+  .login-mark,
+  .pulse,
+  .skeleton {
+    animation: none;
+  }
+}
