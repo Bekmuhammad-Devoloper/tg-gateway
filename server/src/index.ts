@@ -1,7 +1,7 @@
 // Ishga tushirish: baza → bot → HTTP. Bot long polling (oddiy server) yoki webhook (https) rejimida.
 import { webhookCallback } from 'grammy';
 
-import { botMessenger, createBot, setAdminCommands, setAdminMenu, setPublicCommands } from './bot.js';
+import { botMessenger, createBot, profilePhotos, setAdminCommands, setAdminMenu, setPublicCommands } from './bot.js';
 import { CodeService } from './codes.js';
 import { loadDotEnv, readConfig } from './config.js';
 import { openDb } from './db.js';
@@ -26,7 +26,7 @@ await bot.init();
 const username = bot.botInfo.username;
 codes = new CodeService(store, botMessenger(bot, log), () => username);
 
-const app = buildHttp({ store, codes, botToken: config.botToken, botUsername: () => username });
+const app = buildHttp({ store, codes, botToken: config.botToken, botUsername: () => username, profilePhoto: profilePhotos(bot, config.botToken) });
 
 const webhookPath = `/telegram/${sha256(config.botToken).slice(0, 24)}`;
 const webhookSecret = sha256(`secret:${config.botToken}`).slice(0, 48);

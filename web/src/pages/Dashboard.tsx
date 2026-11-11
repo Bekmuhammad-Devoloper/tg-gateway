@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { api, type DeliveryRow, type Me, type Stats } from '../api';
-import { errorText, fmtAgo, Icon, StatusBadge, useCountUp, type IconName } from '../ui';
+import { errorText, fmtAgo, Icon, ProfilePhoto, StatusBadge, useCountUp, type IconName } from '../ui';
 
 const WEEKDAYS = ['Ya', 'Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh'];
 
@@ -93,15 +93,22 @@ function WeekChart({ days }: { days: Stats['days'] }) {
   );
 }
 
-function Tile({ icon, label, value, tone, index }: { icon: IconName; label: string; value: number; tone: string; index: number }) {
+function Tile({ icon, label, value, total, tone, index }: { icon: IconName; label: string; value: number; total: number; tone: string; index: number }) {
   const shown = useCountUp(value);
+  const share = total ? Math.round((value / total) * 100) : 0;
   return (
-    <div className={`tile tone-${tone} reveal`} style={{ ['--i' as string]: index }}>
-      <div className={`tile-icon ${tone}`}>
-        <Icon name={icon} size={18} />
+    <div className={`stat tone-${tone} reveal`} style={{ ['--i' as string]: index }}>
+      <span className="stat-icon">
+        <Icon name={icon} size={20} />
+      </span>
+      <div className="stat-body">
+        <span className="stat-value">{shown.toLocaleString('ru-RU')}</span>
+        <span className="stat-label">{label}</span>
       </div>
-      <span className="tile-value">{shown.toLocaleString('ru-RU')}</span>
-      <span className="muted">{label}</span>
+      <span className="stat-share">{share}%</span>
+      <span className="stat-bar" aria-hidden="true">
+        <i style={{ width: `${share}%` }} />
+      </span>
     </div>
   );
 }
@@ -119,14 +126,13 @@ function Hero({ me, stats, onGo }: { me: Me; stats: Stats; onGo: (tab: string) =
     <section className="hero reveal" style={{ ['--i' as string]: 0 }}>
       <div className="hero-glow" aria-hidden="true" />
       <div className="hero-top">
-        <div className="bot-avatar">
-          <Icon name="telegram" size={26} />
-          <i className="live-dot" aria-hidden="true" />
+        <div className="bot-avatar-wrap">
+          <ProfilePhoto who="bot" className="bot-avatar" fallback={<Icon name="telegram" size={22} />} />
         </div>
         <div className="grow min0">
           <b className="hero-bot">@{me.bot}</b>
           <span className="hero-status">
-            <i className="pulse" aria-hidden="true" /> Bot faol · kodlar yetkazilmoqda
+            <i className="pulse" aria-hidden="true" /> Bot faol
           </span>
         </div>
         <a className="hero-open" href={`https://t.me/${me.bot}`} target="_blank" rel="noreferrer" aria-label="Botni ochish" title="Botni ochish">
@@ -197,10 +203,10 @@ function Recent({ items, onGo }: { items: DeliveryRow[]; onGo: (tab: string) => 
 function DashboardSkeleton() {
   return (
     <div className="stack-lg" aria-busy="true" aria-label="Yuklanmoqda">
-      <div className="skeleton" style={{ height: 196, borderRadius: 24 }} />
+      <div className="skeleton" style={{ height: 168, borderRadius: 22 }} />
       <div className="tiles">
         {[0, 1, 2, 3].map(i => (
-          <div key={i} className="skeleton" style={{ height: 118 }} />
+          <div key={i} className="skeleton" style={{ height: 76 }} />
         ))}
       </div>
       <div className="skeleton" style={{ height: 260 }} />
@@ -235,6 +241,7 @@ export function Dashboard({ me, onGo }: { me: Me; onGo: (tab: string) => void })
   if (error && !stats) return <div className="alert bad">{error}</div>;
   if (!stats) return <DashboardSkeleton />;
   const t = stats.today;
+  const todayTotal = t.SENT + t.USED + t.WAITING + t.EXPIRED + t.FAILED;
 
   return (
     <div className="stack-lg">
@@ -243,10 +250,10 @@ export function Dashboard({ me, onGo }: { me: Me; onGo: (tab: string) => void })
       <section>
         <h2 className="section-title">Bugun</h2>
         <div className="tiles">
-          <Tile index={1} icon="send" label="Yetkazildi" value={t.SENT + t.USED} tone="info" />
-          <Tile index={2} icon="check" label="Tasdiqlandi" value={t.USED} tone="good" />
-          <Tile index={3} icon="clock" label="Kutilmoqda" value={t.WAITING} tone="warn" />
-          <Tile index={4} icon="alert" label="Yetkazilmadi" value={t.EXPIRED + t.FAILED} tone="bad" />
+          <Tile index={1} icon="send" label="Yetkazildi" value={t.SENT + t.USED} total={todayTotal} tone="info" />
+          <Tile index={2} icon="check" label="Tasdiqlandi" value={t.USED} total={todayTotal} tone="good" />
+          <Tile index={3} icon="clock" label="Kutilmoqda" value={t.WAITING} total={todayTotal} tone="warn" />
+          <Tile index={4} icon="alert" label="Yetkazilmadi" value={t.EXPIRED + t.FAILED} total={todayTotal} tone="bad" />
         </div>
       </section>
 

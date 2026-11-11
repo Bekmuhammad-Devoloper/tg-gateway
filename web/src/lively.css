@@ -118,6 +118,21 @@ textarea:focus-visible {
   background: var(--grad);
   box-shadow: 0 6px 18px -6px color-mix(in srgb, var(--accent) 70%, transparent);
 }
+.me-avatar,
+.avatar {
+  overflow: hidden;
+}
+.me-avatar img,
+.avatar img,
+.bot-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.me-avatar {
+  border: 2px solid color-mix(in srgb, var(--surface) 70%, transparent);
+}
 .main {
   padding-bottom: calc(104px + env(safe-area-inset-bottom));
 }
@@ -245,8 +260,8 @@ textarea:focus-visible {
 .hero {
   position: relative;
   overflow: hidden;
-  padding: 20px;
-  border-radius: 24px;
+  padding: 16px;
+  border-radius: 22px;
   color: #fff;
   background: var(--grad);
   box-shadow: 0 20px 44px -22px color-mix(in srgb, var(--accent) 85%, transparent);
@@ -278,31 +293,24 @@ textarea:focus-visible {
   align-items: center;
   gap: 12px;
 }
-.bot-avatar {
+.bot-avatar-wrap {
   position: relative;
-  width: 50px;
-  height: 50px;
-  border-radius: 16px;
-  display: grid;
-  place-items: center;
   flex-shrink: 0;
-  background: rgb(255 255 255 / 0.18);
-  border: 1px solid rgb(255 255 255 / 0.28);
   animation: float 4s ease-in-out infinite;
 }
-.live-dot {
-  position: absolute;
-  right: -3px;
-  bottom: -3px;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #34d399;
-  border: 2.5px solid color-mix(in srgb, var(--accent) 60%, var(--violet));
+.bot-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: rgb(255 255 255 / 0.18);
+  border: 1px solid rgb(255 255 255 / 0.3);
 }
 .hero-bot {
   display: block;
-  font-size: 17px;
+  font-size: 16px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -329,14 +337,14 @@ textarea:focus-visible {
   align-items: flex-end;
   justify-content: space-between;
   gap: 16px;
-  margin-top: 18px;
+  margin-top: 12px;
 }
 .hero-numbers > div:first-child {
   display: flex;
   flex-direction: column;
 }
 .hero-big {
-  font-size: 48px;
+  font-size: 36px;
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.03em;
@@ -356,13 +364,13 @@ textarea:focus-visible {
   flex-direction: column;
 }
 .hero-rate-value {
-  font-size: 22px;
+  font-size: 19px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
 .ring {
-  width: 52px;
-  height: 52px;
+  width: 42px;
+  height: 42px;
   transform: rotate(-90deg);
 }
 .ring circle {
@@ -380,15 +388,15 @@ textarea:focus-visible {
   position: relative;
   display: flex;
   gap: 8px;
-  margin-top: 18px;
+  margin-top: 14px;
   flex-wrap: wrap;
 }
 .chip-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 36px;
-  padding: 0 14px;
+  height: 32px;
+  padding: 0 12px;
   border: 1px solid rgb(255 255 255 / 0.28);
   border-radius: 999px;
   background: rgb(255 255 255 / 0.16);
@@ -405,8 +413,8 @@ textarea:focus-visible {
   transform: scale(0.96);
 }
 .hero-open {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   display: grid;
   place-items: center;
@@ -423,42 +431,90 @@ textarea:focus-visible {
   transform: scale(0.94);
 }
 
-/* ---- ko'rsatkichlar ---- */
-.tile {
+/* ---- ko'rsatkichlar: ikon, son va yozuv bir qatorda, pastda ulush chizig'i ---- */
+.stat {
   position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 76px;
+  padding: 14px 14px 18px;
   overflow: hidden;
+  border: 1px solid var(--border);
   border-radius: 18px;
+  background:
+    radial-gradient(140px 90px at 100% 0%, color-mix(in srgb, var(--tone) 18%, transparent), transparent 70%),
+    var(--surface);
   box-shadow: var(--shadow);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--tone, var(--accent)) 9%, var(--surface)) 0%, var(--surface) 70%);
 }
-.tile::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 3px;
-  background: var(--tone, var(--accent));
-  opacity: 0.85;
-}
-.tile.tone-info {
+.stat.tone-info {
   --tone: var(--info);
 }
-.tile.tone-good {
+.stat.tone-good {
   --tone: var(--good);
 }
-.tile.tone-warn {
+.stat.tone-warn {
   --tone: var(--warn);
 }
-.tile.tone-bad {
+.stat.tone-bad {
   --tone: var(--bad);
 }
-.tile-value {
-  font-size: 32px;
-  font-weight: 800;
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: var(--tone);
+  background: color-mix(in srgb, var(--tone) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tone) 22%, transparent);
 }
-.tile-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
+.stat-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.stat-value {
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.stat-label {
+  font-size: 12.5px;
+  color: var(--hint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stat-share {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--tone);
+  font-variant-numeric: tabular-nums;
+}
+.stat-bar {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 9px;
+  height: 3px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--hint) 14%, transparent);
+  overflow: hidden;
+}
+.stat-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--tone);
+  transition: width 0.7s var(--ease);
 }
 
 /* ---- grafik ---- */
@@ -591,7 +647,7 @@ textarea:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bot-avatar,
+  .bot-avatar-wrap,
   .login-mark,
   .pulse,
   .skeleton {

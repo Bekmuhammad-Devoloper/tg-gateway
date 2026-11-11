@@ -150,6 +150,37 @@ export async function setAdminMenu(bot: Bot, chatId: number, publicUrl: string, 
   await bot.api.setChatMenuButton({ chat_id: chatId, menu_button: { type: 'web_app', text: t(lang, 'adminOpen'), web_app: { url: `${publicUrl}/` } } });
 }
 
+/**
+ * Telegram profil rasmi (kichik o'lcham, JPEG). Bir soat xotirada saqlanadi; rasm yo'q yoki
+ * maxfiylik sozlamasi yopgan bo'lsa — null.
+ */
+export function profilePhotos(bot: Bot, token: string): (who: 'bot' | number) => Promise<Buffer | null> {
+  const cache = new Map<number, { at: number; data: Buffer | null }>();
+  const HOUR = 3_600_000;
+  return async who => {
+    const userId = who === 'bot' ? bot.botInfo.id : who;
+    const hit = cache.get(userId);
+    if (hit && Date.now() - hit.at < HOUR) return hit.data;
+    let data: Buffer | null = null;
+    try {
+      const { photos } = await bot.api.getUserProfilePhotos(userId, { limit: 1 });
+      const sizes = photos[0] ?? [];
+      const pick = sizes.find(s => s.width >= 160) ?? sizes[sizes.length - 1];
+      if (pick) {
+        const file = await bot.api.getFile(pick.file_id);
+        if (file.file_path) {
+          const res = await fetch(`https://api.telegram.org/file/bot${token}/${file.file_path}`, { signal: AbortSignal.timeout(8000) });
+          if (res.ok) data = Buffer.from(await res.arrayBuffer());
+        }
+      }
+    } catch {
+      data = null;
+    }
+    cache.set(userId, { at: Date.now(), data });
+    return data;
+  };
+}
+
 /** Bot orqali kod yuborish; foydalanuvchi botni to'xtatgan bo'lsa false */
 export function botMessenger(bot: Bot, log: (msg: string) => void): Messenger {
   return {

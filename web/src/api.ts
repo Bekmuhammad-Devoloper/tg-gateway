@@ -79,6 +79,7 @@ export const hasSession = (): boolean => token !== '';
 
 export function setSession(value: string): void {
   token = value;
+  photoCache.clear();
   try {
     if (value) localStorage.setItem(KEY, value);
     else localStorage.removeItem(KEY);
@@ -121,6 +122,20 @@ export const api = {
   put: <T>(path: string, body: unknown) => request<T>('PUT', path, body).then(r => r.data),
   del: <T>(path: string) => request<T>('DELETE', path).then(r => r.data),
 };
+
+/** Profil rasmlari bir marta yuklanadi va sahifalar almashganda qayta so'ralmaydi */
+const photoCache = new Map<string, Promise<string | null>>();
+
+/** Telegram profil rasmi (admin — 'me', bot — 'bot'): brauzer URL'i yoki rasm bo'lmasa null */
+export function photoUrl(who: 'me' | 'bot'): Promise<string | null> {
+  const hit = photoCache.get(who);
+  if (hit) return hit;
+  const loading = fetch(`/admin/api/photo/${who}`, { headers: token ? { authorization: `Bearer ${token}` } : {} })
+    .then(async res => (res.ok ? URL.createObjectURL(await res.blob()) : null))
+    .catch(() => null);
+  photoCache.set(who, loading);
+  return loading;
+}
 
 /** Botning nomi (kirish sahifasi uchun, sessiyasiz) */
 export async function botName(): Promise<string> {

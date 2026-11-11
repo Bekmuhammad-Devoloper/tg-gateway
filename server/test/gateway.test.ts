@@ -239,6 +239,28 @@ describe('HTTP', () => {
     expect(JSON.stringify(body)).not.toContain('58213');
   });
 
+  it('profil rasmi: o‘ziniki va botniki, rasm bo‘lmasa 404, sessiyasiz 401', async () => {
+    store.addAdmin(42);
+    const jpeg = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3]);
+    const asked: Array<'bot' | number> = [];
+    const a = buildHttp({
+      store, codes, botToken: TOKEN, botUsername: () => 'test_bot', webDir: '/nonexistent',
+      profilePhoto: async who => {
+        asked.push(who);
+        return who === 'bot' ? null : jpeg;
+      },
+    });
+    const auth = { authorization: `Bearer ${store.createSession(42)}` };
+    const me = await a.inject({ method: 'GET', url: '/admin/api/photo/me', headers: auth });
+    expect(me.statusCode).toBe(200);
+    expect(me.headers['content-type']).toBe('image/jpeg');
+    expect(me.rawPayload.equals(jpeg)).toBe(true);
+    expect((await a.inject({ method: 'GET', url: '/admin/api/photo/bot', headers: auth })).statusCode).toBe(404);
+    expect((await a.inject({ method: 'GET', url: '/admin/api/photo/7', headers: auth })).statusCode).toBe(404);
+    expect((await a.inject({ method: 'GET', url: '/admin/api/photo/me' })).statusCode).toBe(401);
+    expect(asked).toEqual([42, 'bot']);
+  });
+
   it('admin o‘zini o‘chira olmaydi', async () => {
     store.addAdmin(42);
     const r = await app().inject({ method: 'DELETE', url: '/admin/api/admins/42', headers: { authorization: `Bearer ${store.createSession(42)}` } });

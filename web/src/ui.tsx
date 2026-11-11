@@ -1,7 +1,7 @@
 // Umumiy UI bo'laklari: ikonlar, oyna, bildirishnoma, tasdiqlash, holat belgisi, sahifalash.
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 
-import type { DeliveryStatus } from './api';
+import { photoUrl, type DeliveryStatus } from './api';
 
 const PATHS = {
   home: 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
@@ -251,6 +251,19 @@ export function useCountUp(target: number, duration = 700): number {
     return () => cancelAnimationFrame(frame);
   }, [target, duration]);
   return value;
+}
+
+/** Telegram profil rasmi; rasm yo'q bo'lsa — o'rnida berilgan belgi (harf yoki ikon) */
+export function ProfilePhoto({ who, className, fallback }: { who: 'me' | 'bot'; className: string; fallback: ReactNode }) {
+  const [src, setSrc] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void photoUrl(who).then(url => alive && setSrc(url));
+    return () => {
+      alive = false;
+    };
+  }, [who]);
+  return <span className={className}>{src ? <img src={src} alt="" /> : fallback}</span>;
 }
 
 export const errorText = (e: unknown): string => (e instanceof Error ? e.message : 'Xatolik yuz berdi');

@@ -16,6 +16,8 @@ export interface HttpDeps {
   codes: CodeService;
   botToken: string;
   botUsername: () => string;
+  /** Telegram profil rasmi (JPEG) — admin yoki botning o'zi; rasm bo'lmasa null */
+  profilePhoto?: (who: 'bot' | number) => Promise<Buffer | null>;
   /** Admin panelning yig'ilgan fayllari (vite build) */
   webDir?: string;
   logger?: boolean;
@@ -115,6 +117,16 @@ export function buildHttp(deps: HttpDeps): FastifyInstance {
   app.get('/admin/api/me', async req => {
     const tgId = admin(req);
     return { ok: true, data: { tgId, bot: deps.botUsername(), name: store.listAdmins().find(a => a.tgId === tgId)?.name ?? '' } };
+  });
+
+  /** Panelda ko'rsatiladigan profil rasmi: o'ziniki (me) yoki botniki (bot) */
+  app.get<{ Params: { who: string } }>('/admin/api/photo/:who', async (req, reply) => {
+    const tgId = admin(req);
+    const who = req.params.who === 'bot' ? 'bot' : req.params.who === 'me' ? tgId : null;
+    if (who === null) throw new GatewayError(404, 'NOT_FOUND', 'Topilmadi');
+    const photo = deps.profilePhoto ? await deps.profilePhoto(who) : null;
+    if (!photo) throw new GatewayError(404, 'NO_PHOTO', 'Rasm yo‘q');
+    return reply.header('content-type', 'image/jpeg').header('cache-control', 'private, max-age=3600').send(photo);
   });
 
   app.get('/admin/api/stats', async req => {

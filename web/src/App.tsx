@@ -7,7 +7,7 @@ import { Deliveries } from './pages/Deliveries';
 import { Login } from './pages/Login';
 import { Projects } from './pages/Projects';
 import { Settings } from './pages/Settings';
-import { Icon, Spinner, type IconName } from './ui';
+import { Icon, ProfilePhoto, Spinner, type IconName } from './ui';
 
 const TABS: Array<{ id: string; label: string; short: string; icon: IconName; sub: string }> = [
   { id: 'home', label: 'Bosh sahifa', short: 'Bosh', icon: 'home', sub: 'Bugungi holat bir qarashda' },
@@ -119,7 +119,7 @@ export function App() {
         </nav>
         <div className="sidebar-foot">
           <div className="me">
-            <div className="avatar">{(me.name || 'A').slice(0, 1).toUpperCase()}</div>
+            <ProfilePhoto who="me" className="avatar" fallback={(me.name || 'A').slice(0, 1).toUpperCase()} />
             <div>
               <b>{me.name || 'Administrator'}</b>
               <span className="muted">ID {me.tgId}</span>
@@ -135,7 +135,7 @@ export function App() {
             <span className="muted topbar-sub">{tab === 'home' ? `Bugun, ${today()}` : current.sub}</span>
           </div>
           <button className="me-chip" onClick={() => go('settings')} aria-label="Sozlamalar">
-            <span className="me-avatar">{(me.name || 'A').slice(0, 1).toUpperCase()}</span>
+            <ProfilePhoto who="me" className="me-avatar" fallback={(me.name || 'A').slice(0, 1).toUpperCase()} />
           </button>
         </header>
         <div className="content page" key={tab}>
