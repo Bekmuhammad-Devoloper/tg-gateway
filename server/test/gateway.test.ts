@@ -261,6 +261,21 @@ describe('HTTP', () => {
     expect(asked).toEqual([42, 'bot']);
   });
 
+  it('loyihalar ro‘yxatida bugungi va 7 kunlik faollik', async () => {
+    store.addAdmin(42);
+    link();
+    await codes.request(project, { phone: '+998901234567', code: '1111', mode: 'SEND' });
+    await codes.request(project, { phone: '+998907654321', code: '2222', mode: 'SEND' });
+    const old = await codes.request(project, { phone: '+998901112233', code: '3333', mode: 'SEND' });
+    store.db.prepare('UPDATE deliveries SET created_at = ? WHERE id = ?').run(new Date(Date.now() - 3 * 86_400_000).toISOString(), old.id);
+    const idle = store.createProject('Bo‘sh loyiha').project;
+
+    const r = await app().inject({ method: 'GET', url: '/admin/api/projects', headers: { authorization: `Bearer ${store.createSession(42)}` } });
+    const list = r.json().data as Array<Project & { activity: { today: number; week: number; delivered: number } }>;
+    expect(list.find(p => p.id === project.id)?.activity).toEqual({ today: 2, week: 3, delivered: 1 });
+    expect(list.find(p => p.id === idle.id)?.activity).toEqual({ today: 0, week: 0, delivered: 0 });
+  });
+
   it('admin o‘zini o‘chira olmaydi', async () => {
     store.addAdmin(42);
     const r = await app().inject({ method: 'DELETE', url: '/admin/api/admins/42', headers: { authorization: `Bearer ${store.createSession(42)}` } });

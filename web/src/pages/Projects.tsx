@@ -283,50 +283,69 @@ export function Projects() {
         </div>
       ) : (
         <div className="cards">
-          {list.map(p => (
-            <article key={p.id} className={`card project ${p.active ? '' : 'off'}`}>
+          {list.map((p, i) => (
+            <article key={p.id} className={`card project ${p.active ? '' : 'off'} reveal`} style={{ ['--i' as string]: i }}>
               <div className="project-head">
                 <div className="project-mark">{p.name.slice(0, 1).toUpperCase()}</div>
-                <div className="grow">
-                  <h3>{p.name}</h3>
-                  <span className="muted">{fmtDate(p.createdAt)} dan beri</span>
+                <div className="grow min0">
+                  <h3 className="ellipsis">{p.name}</h3>
+                  <span className="project-meta">
+                    <span className={`state-pill ${p.active ? 'on' : ''}`}>
+                      <i />
+                      {p.active ? 'Faol' : 'To‘xtatilgan'}
+                    </span>
+                    <span className="muted">{fmtDate(p.createdAt).slice(0, 10)} dan</span>
+                  </span>
                 </div>
                 <button className={`switch ${p.active ? 'on' : ''}`} role="switch" aria-checked={p.active} aria-label="Faol" onClick={() => toggle(p)}>
                   <i />
                 </button>
               </div>
-              <dl className="facts">
+
+              <div className="project-stats">
                 <div>
-                  <dt>Kalit</dt>
-                  <dd>
-                    <code>{p.keyPrefix}…</code>
-                  </dd>
+                  <b>{p.activity?.today ?? 0}</b>
+                  <span>bugun</span>
                 </div>
                 <div>
-                  <dt>Kod</dt>
-                  <dd>{p.codeLength} raqam</dd>
+                  <b>{p.activity?.week ?? 0}</b>
+                  <span>7 kunda</span>
                 </div>
                 <div>
-                  <dt>Muddati</dt>
-                  <dd>{minutes(p.ttlSec)}</dd>
+                  <b>{p.activity?.week ? `${Math.round(((p.activity.delivered ?? 0) / p.activity.week) * 100)}%` : '—'}</b>
+                  <span>yetkazildi</span>
                 </div>
-                <div>
-                  <dt>Shablon</dt>
-                  <dd>{p.template.trim() ? 'O‘ziniki' : 'Standart'}</dd>
-                </div>
-              </dl>
-              <div className="actions">
-                <button className="btn sm" onClick={() => setTest(p)} disabled={!p.active}>
-                  <Icon name="send" size={16} /> Sinov
+              </div>
+
+              <div className="key-row">
+                <Icon name="key" size={16} />
+                <code>{p.keyPrefix}••••••</code>
+                <button className="icon-btn sm" onClick={() => rotate(p)} title="Yangi kalit" aria-label="Yangi kalit">
+                  <Icon name="refresh" size={16} />
+                </button>
+              </div>
+
+              <div className="project-tags">
+                <span>
+                  <Icon name="lock" size={14} /> {p.codeLength} raqam
+                </span>
+                <span>
+                  <Icon name="clock" size={14} /> {minutes(p.ttlSec)}
+                </span>
+                <span>
+                  <Icon name="edit" size={14} /> {p.template.trim() ? 'O‘z shabloni' : 'Standart xabar'}
+                </span>
+              </div>
+
+              <div className="project-actions">
+                <button className="btn sm primary" onClick={() => setTest(p)} disabled={!p.active}>
+                  <Icon name="send" size={16} /> Sinov kodi
                 </button>
                 <button className="btn sm ghost" onClick={() => setForm({ project: p })}>
                   <Icon name="edit" size={16} /> Tahrirlash
                 </button>
-                <button className="btn sm ghost" onClick={() => rotate(p)}>
-                  <Icon name="key" size={16} /> Yangi kalit
-                </button>
-                <button className="btn sm ghost danger-text" onClick={() => remove(p)} aria-label="O‘chirish">
-                  <Icon name="trash" size={16} />
+                <button className="icon-btn danger-text" onClick={() => remove(p)} title="O‘chirish" aria-label="O‘chirish">
+                  <Icon name="trash" size={18} />
                 </button>
               </div>
             </article>

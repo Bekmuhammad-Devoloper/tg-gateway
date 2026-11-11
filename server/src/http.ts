@@ -136,7 +136,9 @@ export function buildHttp(deps: HttpDeps): FastifyInstance {
 
   app.get('/admin/api/projects', async req => {
     admin(req);
-    return { ok: true, data: store.listProjects() };
+    const activity = store.projectActivity();
+    const none = { today: 0, week: 0, delivered: 0 };
+    return { ok: true, data: store.listProjects().map(p => ({ ...p, activity: activity.get(p.id) ?? none })) };
   });
 
   app.post('/admin/api/projects', async req => {

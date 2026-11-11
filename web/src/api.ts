@@ -9,6 +9,8 @@ export interface Project {
   codeLength: number;
   ttlSec: number;
   createdAt: string;
+  /** Bugun va oxirgi 7 kunda so'ralgan kodlar, ulardan yetkazilgani */
+  activity?: { today: number; week: number; delivered: number };
 }
 
 export interface Contact {

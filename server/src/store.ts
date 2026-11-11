@@ -310,6 +310,21 @@ export class Store {
     };
   }
 
+  /** Loyihalar faolligi: bugun va oxirgi 7 kunda so'ralgan kodlar, ulardan yetkazilgani (server vaqt zonasida) */
+  projectActivity(): Map<string, { today: number; week: number; delivered: number }> {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const weekStart = new Date(start);
+    weekStart.setDate(start.getDate() - 6);
+    const rows = this.db
+      .prepare(
+        `SELECT project_id, SUM(created_at >= ?) AS today, COUNT(*) AS week, SUM(status IN ('SENT', 'USED')) AS delivered
+         FROM deliveries WHERE created_at >= ? GROUP BY project_id`,
+      )
+      .all(start.toISOString(), weekStart.toISOString()) as Row[];
+    return new Map(rows.map(r => [String(r.project_id), { today: Number(r.today), week: Number(r.week), delivered: Number(r.delivered) }]));
+  }
+
   // ---- sozlamalar --------------------------------------------------------------------------
 
   getSetting(key: string): string | undefined {

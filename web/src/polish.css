@@ -1,0 +1,408 @@
+/* =============================================================================================
+   Qo'lda yozilgandek yozuvlar (Caveat), chiziqli grafik, loyiha kartochkasi, shaffof sarlavha.
+   lively.css dan keyin ulanadi. Raqam, kalit va sanalar oddiy shriftda qoladi — aniq o'qilsin.
+   ============================================================================================= */
+
+:root {
+  --hand: 'Caveat', 'Segoe Print', 'Bradley Hand', 'Comic Sans MS', cursive;
+}
+
+/* ---- dastxat: sarlavhalar, yozuvlar, tugmalar ---- */
+h1,
+h2,
+h3,
+.section-title,
+.brand b,
+.nav-item span,
+.tab > span:last-child,
+.hero-bot,
+.hero-status,
+.hero-label,
+.hero-big,
+.hero-rate-value,
+.chip-btn,
+.btn,
+.link-btn,
+.legend,
+.xaxis span,
+.stat-label,
+.stat-value,
+.project-stats b,
+.project-stats span,
+.project-tags span,
+.state-pill,
+.feed-row b,
+.row-title b,
+.link-card b,
+.empty b,
+.steps,
+.field > span,
+.segmented button,
+.modal-head h3,
+.toast span,
+.point-label {
+  font-family: var(--hand);
+  letter-spacing: 0;
+}
+
+/* Caveat kichikroq ko'rinadi — o'lchamlar kattalashtiriladi */
+.topbar h1 {
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.05;
+}
+h2 {
+  font-size: 23px;
+  font-weight: 700;
+}
+h3 {
+  font-size: 22px;
+  font-weight: 700;
+}
+.section-title {
+  font-size: 21px;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.brand b {
+  font-size: 21px;
+}
+.nav-item span {
+  font-size: 19px;
+  font-weight: 600;
+}
+.tab > span:last-child {
+  font-size: 14px;
+  font-weight: 700;
+}
+.hero-bot {
+  font-size: 22px;
+  font-weight: 700;
+}
+.hero-status {
+  font-size: 17px;
+}
+.hero-label {
+  font-size: 17px;
+}
+.hero-big {
+  font-size: 46px;
+  font-weight: 700;
+}
+.hero-rate-value {
+  font-size: 26px;
+  font-weight: 700;
+}
+.chip-btn {
+  font-size: 18px;
+  font-weight: 700;
+}
+.btn {
+  font-size: 18px;
+  font-weight: 700;
+}
+.btn.sm {
+  font-size: 17px;
+}
+.link-btn {
+  font-size: 18px;
+  font-weight: 700;
+}
+.legend {
+  font-size: 16px;
+}
+.xaxis span {
+  font-size: 15px;
+}
+.stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+}
+.stat-label {
+  font-size: 17px;
+}
+.feed-row b,
+.row-title b,
+.link-card b {
+  font-size: 19px;
+  font-weight: 700;
+}
+.empty b {
+  font-size: 21px;
+}
+.steps {
+  font-size: 19px;
+}
+.field > span {
+  font-size: 18px;
+}
+.segmented button {
+  font-size: 17px;
+}
+.toast span {
+  font-size: 18px;
+}
+
+/* ---- shaffof, xira fonli sarlavha: aylantirilganda kontent ostidan o'tadi ---- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  background: color-mix(in srgb, var(--bg) 74%, transparent);
+  backdrop-filter: blur(16px) saturate(1.3);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+}
+
+/* ---- chiziqli grafik ---- */
+@keyframes reveal-x {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes dot-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+  }
+}
+.line-plot {
+  position: relative;
+}
+.line-draw {
+  position: absolute;
+  inset: 0;
+  animation: reveal-x 1.1s var(--ease) both;
+}
+.line-draw svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.line {
+  fill: none;
+  stroke-width: 2.5px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.line.s1 {
+  stroke: var(--series-1);
+}
+.line.s2 {
+  stroke: var(--series-2);
+}
+.dot {
+  position: absolute;
+  z-index: 2;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 2px var(--surface);
+  pointer-events: none;
+  transition: width 0.2s var(--ease), height 0.2s var(--ease);
+  animation: dot-in 0.35s var(--ease) both;
+}
+.dot.s1 {
+  background: var(--series-1);
+}
+.dot.s2 {
+  background: var(--series-2);
+}
+.dot.today,
+.dot.on {
+  width: 12px;
+  height: 12px;
+}
+.dot.s1.today,
+.dot.s1.on {
+  box-shadow: 0 0 0 3px var(--surface), 0 0 0 7px color-mix(in srgb, var(--series-1) 28%, transparent);
+}
+.dot.s2.today,
+.dot.s2.on {
+  box-shadow: 0 0 0 3px var(--surface), 0 0 0 7px color-mix(in srgb, var(--series-2) 28%, transparent);
+}
+.point-label {
+  position: absolute;
+  z-index: 2;
+  transform: translate(-50%, -165%);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  pointer-events: none;
+  animation: fade-up 0.4s var(--ease) 0.9s both;
+}
+.crosshair {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: color-mix(in srgb, var(--hint) 45%, transparent);
+  pointer-events: none;
+}
+.hit {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 3;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.hit .tip {
+  top: -6px;
+  left: 50%;
+}
+.hit .tip.left {
+  left: auto;
+  right: 50%;
+}
+.line-x {
+  position: relative;
+  display: block;
+  height: 20px;
+  margin: 10px 0 0 28px;
+}
+.line-x span {
+  position: absolute;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+/* ---- loyiha kartochkasi ---- */
+.project-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 3px;
+  font-size: 12.5px;
+}
+.state-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 9px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--hint);
+  background: var(--soft);
+}
+.state-pill i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--hint);
+}
+.state-pill.on {
+  color: var(--good);
+  background: color-mix(in srgb, var(--good) 14%, transparent);
+}
+.state-pill.on i {
+  background: var(--good);
+  animation: live-pulse 1.8s infinite;
+}
+.project-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 14px;
+  overflow: hidden;
+  border-radius: 14px;
+  background:
+    radial-gradient(200px 80px at 0% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%),
+    var(--soft);
+}
+.project-stats > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 6px 8px;
+}
+.project-stats > div + div {
+  border-left: 1px solid var(--border);
+}
+.project-stats b {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.project-stats span {
+  margin-top: 2px;
+  font-size: 15px;
+  color: var(--hint);
+}
+.key-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 5px 5px 5px 12px;
+  border: 1px dashed color-mix(in srgb, var(--hint) 38%, transparent);
+  border-radius: 12px;
+  color: var(--hint);
+}
+.key-row code {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: none;
+  color: var(--text);
+  font-size: 13px;
+}
+.icon-btn.sm {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+}
+.project-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.project-tags span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 11px;
+  border-radius: 999px;
+  font-size: 16px;
+  background: var(--soft);
+}
+.project-tags svg {
+  color: var(--accent);
+}
+.project-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+.project-actions .btn {
+  flex: 1;
+}
+.project-actions .icon-btn {
+  border: 1px solid var(--border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .line-draw,
+  .dot,
+  .point-label,
+  .state-pill.on i {
+    animation: none;
+  }
+}

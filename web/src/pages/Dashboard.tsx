@@ -13,11 +13,54 @@ function niceMax(n: number): number {
   return 10 * pow;
 }
 
+/**
+ * Silliq egri chiziq (monotonik kubik, Fritsch–Carlson): nuqtalar orasida yolg'on cho'qqi yoki
+ * noldan pastga tushish chizmaydi. Koordinatalar 0..100 oralig'ida.
+ */
+function smoothPath(pts: Array<[number, number]>): string {
+  const n = pts.length;
+  if (n < 2) return '';
+  const dx = pts.slice(0, -1).map((p, i) => pts[i + 1][0] - p[0]);
+  const slope = pts.slice(0, -1).map((p, i) => (pts[i + 1][1] - p[1]) / dx[i]);
+  const m = pts.map((_, i) => (i === 0 ? slope[0] : i === n - 1 ? slope[n - 2] : slope[i - 1] * slope[i] <= 0 ? 0 : (slope[i - 1] + slope[i]) / 2));
+  for (let i = 0; i < n - 1; i++) {
+    if (slope[i] === 0) {
+      m[i] = 0;
+      m[i + 1] = 0;
+      continue;
+    }
+    const a = m[i] / slope[i];
+    const b = m[i + 1] / slope[i];
+    const h = a * a + b * b;
+    if (h > 9) {
+      const t = 3 / Math.sqrt(h);
+      m[i] = t * a * slope[i];
+      m[i + 1] = t * b * slope[i];
+    }
+  }
+  let d = `M${pts[0][0]},${pts[0][1]}`;
+  for (let i = 0; i < n - 1; i++) {
+    const h = dx[i];
+    d += ` C${pts[i][0] + h / 3},${pts[i][1] + (m[i] * h) / 3} ${pts[i + 1][0] - h / 3},${pts[i + 1][1] - (m[i + 1] * h) / 3} ${pts[i + 1][0]},${pts[i + 1][1]}`;
+  }
+  return d;
+}
+
+/** Ikki chiziq: yetkazildi va yetkazilmadi; bitta o'q, bugungi nuqtalar ajratilgan */
 function WeekChart({ days }: { days: Stats['days'] }) {
   const [active, setActive] = useState<number | null>(null);
-  const top = niceMax(Math.max(...days.map(d => d.sent + d.waiting)));
+  const top = niceMax(Math.max(...days.map(d => Math.max(d.sent, d.waiting))));
   const ticks = [top, top / 2, 0];
   const total = days.reduce((s, d) => s + d.sent + d.waiting, 0);
+  const PAD = 5;
+  const step = (100 - 2 * PAD) / (days.length - 1);
+  const x = (i: number) => PAD + i * step;
+  const y = (v: number) => 100 - (v / top) * 100;
+  const sent = days.map((d, i): [number, number] => [x(i), y(d.sent)]);
+  const missed = days.map((d, i): [number, number] => [x(i), y(d.waiting)]);
+  const sentLine = smoothPath(sent);
+  const area = `${sentLine} L${x(days.length - 1)},100 L${x(0)},100 Z`;
+  const last = days.length - 1;
 
   return (
     <div className="chart">
@@ -37,7 +80,7 @@ function WeekChart({ days }: { days: Stats['days'] }) {
           </span>
         </div>
       </div>
-      <div className="plot" onMouseLeave={() => setActive(null)}>
+      <div className="plot line-plot" onMouseLeave={() => setActive(null)}>
         <div className="grid">
           {ticks.map(v => (
             <div key={v} className="gridline">
@@ -45,47 +88,64 @@ function WeekChart({ days }: { days: Stats['days'] }) {
             </div>
           ))}
         </div>
-        <div className="bars">
-          {days.map((d, i) => {
-            const sum = d.sent + d.waiting;
-            const date = new Date(`${d.day}T00:00:00`);
-            return (
-              <button
-                key={d.day}
-                className={`col ${active === i ? 'active' : ''} ${i === days.length - 1 ? 'today' : ''}`}
-                onMouseEnter={() => setActive(i)}
-                onFocus={() => setActive(i)}
-                onClick={() => setActive(active === i ? null : i)}
-                aria-label={`${d.day}: yetkazildi ${d.sent}, yetkazilmadi ${d.waiting}`}
-              >
-                <div className="stack grow-up" style={{ height: `${(sum / top) * 100}%`, animationDelay: `${i * 60}ms` }}>
-                  {d.waiting > 0 && <div className="seg s2" style={{ flexGrow: d.waiting }} />}
-                  {d.sent > 0 && <div className="seg s1" style={{ flexGrow: d.sent }} />}
-                </div>
-                {active === i && (
-                  <div className={`tip ${i > 4 ? 'left' : ''}`}>
-                    <b>
-                      {WEEKDAYS[date.getDay()]}, {date.getDate()}.{String(date.getMonth() + 1).padStart(2, '0')}
-                    </b>
-                    <span>
-                      <i className="swatch s1" />
-                      Yetkazildi <b>{d.sent}</b>
-                    </span>
-                    <span>
-                      <i className="swatch s2" />
-                      Yetkazilmadi <b>{d.waiting}</b>
-                    </span>
-                  </div>
-                )}
-              </button>
-            );
-          })}
+        <div className="line-draw">
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="area-sent" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="var(--series-1)" stopOpacity="0.32" />
+                <stop offset="100%" stopColor="var(--series-1)" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <path d={area} fill="url(#area-sent)" />
+            <path d={smoothPath(missed)} className="line s2" />
+            <path d={sentLine} className="line s1" />
+          </svg>
         </div>
-      </div>
-      <div className="xaxis">
+        {active !== null && <div className="crosshair" style={{ left: `${x(active)}%` }} />}
         {days.map((d, i) => (
-          <span key={d.day} className={i === days.length - 1 ? 'today' : ''}>
-            {i === days.length - 1 ? 'Bugun' : WEEKDAYS[new Date(`${d.day}T00:00:00`).getDay()]}
+          <span key={`m${d.day}`} className={`dot s2 ${i === last ? 'today' : ''} ${active === i ? 'on' : ''}`} style={{ left: `${x(i)}%`, top: `${y(d.waiting)}%`, animationDelay: `${120 + i * 150}ms` }} />
+        ))}
+        {days.map((d, i) => (
+          <span key={`s${d.day}`} className={`dot s1 ${i === last ? 'today' : ''} ${active === i ? 'on' : ''}`} style={{ left: `${x(i)}%`, top: `${y(d.sent)}%`, animationDelay: `${120 + i * 150}ms` }} />
+        ))}
+        <span className="point-label" style={{ left: `${x(last)}%`, top: `${y(days[last].sent)}%` }}>
+          {days[last].sent}
+        </span>
+        {days.map((d, i) => {
+          const date = new Date(`${d.day}T00:00:00`);
+          return (
+            <button
+              key={d.day}
+              className="hit"
+              style={{ left: `${x(i) - step / 2}%`, width: `${step}%` }}
+              onMouseEnter={() => setActive(i)}
+              onFocus={() => setActive(i)}
+              onClick={() => setActive(active === i ? null : i)}
+              aria-label={`${d.day}: yetkazildi ${d.sent}, yetkazilmadi ${d.waiting}`}
+            >
+              {active === i && (
+                <span className={`tip ${i > 3 ? 'left' : ''}`}>
+                  <b>
+                    {i === last ? 'Bugun' : WEEKDAYS[date.getDay()]}, {date.getDate()}.{String(date.getMonth() + 1).padStart(2, '0')}
+                  </b>
+                  <span>
+                    <i className="swatch s1" />
+                    Yetkazildi <b>{d.sent}</b>
+                  </span>
+                  <span>
+                    <i className="swatch s2" />
+                    Yetkazilmadi <b>{d.waiting}</b>
+                  </span>
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+      <div className="xaxis line-x">
+        {days.map((d, i) => (
+          <span key={d.day} className={i === last ? 'today' : ''} style={{ left: `${x(i)}%` }}>
+            {i === last ? 'Bugun' : WEEKDAYS[new Date(`${d.day}T00:00:00`).getDay()]}
           </span>
         ))}
       </div>

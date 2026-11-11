@@ -5,6 +5,7 @@ import { App } from './App';
 import { UiProvider } from './ui';
 import './styles.css';
 import './lively.css';
+import './polish.css';
 
 // Telegram ichida — Telegram mavzusi (yorug'/qorong'i) bo'yicha
 const tg = window.Telegram?.WebApp;
