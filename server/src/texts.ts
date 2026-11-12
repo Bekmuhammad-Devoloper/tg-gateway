@@ -7,7 +7,7 @@ export const langOf = (code?: string | null): Lang => (code?.startsWith('ru') ? 
 
 type Texts = Record<
   | 'welcome' | 'shareButton' | 'linked' | 'notOwnContact' | 'linkedNoWaiting' | 'mismatch' | 'expired'
-  | 'blocked' | 'help' | 'copy' | 'codeTitle' | 'codeLine' | 'codeTtl' | 'codeWarn' | 'delivered' | 'adminPanel'
+  | 'blocked' | 'help' | 'copy' | 'codeHead' | 'codeTtl' | 'codeWarn' | 'codeIgnore' | 'codeExpired' | 'codeUsed' | 'delivered' | 'adminPanel'
   | 'adminOpen' | 'adminOnly' | 'claimOk' | 'claimBad' | 'browserLink',
   string
 >;
@@ -24,10 +24,12 @@ const T: Record<Lang, Texts> = {
     blocked: '⛔ Bu raqam uchun kod yuborish cheklangan. Administrator bilan bog\'laning.',
     help: 'ℹ️ Bu bot ilovalarga kirish kodlarini yuboradi.\n\n1. Ilovada telefon raqamingizni kiriting va <b>«Telegram orqali»</b> ni tanlang.\n2. Kod shu chatga keladi — uni ilovaga kiriting.\n\nKodni hech kimga bermang.',
     copy: '📋 Kodni nusxalash',
-    codeTitle: '🔐 <b>{project}</b>',
-    codeLine: 'Tasdiqlash kodingiz:',
-    codeTtl: '⏱ {minutes} daqiqa amal qiladi',
-    codeWarn: '🚫 Kodni hech kimga bermang — hatto xodimlarga ham.',
+    codeHead: '🔐 <b>{project}</b> · tasdiqlash kodi',
+    codeTtl: '⏱ <b>{minutes} daqiqa</b> amal qiladi',
+    codeWarn: 'Kodni hech kimga bermang — xodimlar uni hech qachon so‘ramaydi.',
+    codeIgnore: 'Kodni siz so‘ramagan bo‘lsangiz, bu xabarni e’tiborsiz qoldiring.',
+    codeExpired: '⌛ <b>Kod muddati tugadi.</b> Yangi kodni ilovadan so‘rang.',
+    codeUsed: '✅ <b>Kod tasdiqlandi.</b>',
     delivered: '✅ Kod yuqorida. Uni ilovaga kiriting.',
     adminPanel: '🛠 <b>Admin panel</b>\n\nLoyihalar, kodlar tarixi, foydalanuvchilar va sozlamalar.',
     adminOpen: '🛠 Panelni ochish',
@@ -47,10 +49,12 @@ const T: Record<Lang, Texts> = {
     blocked: '⛔ Отправка кодов на этот номер ограничена. Свяжитесь с администратором.',
     help: 'ℹ️ Этот бот присылает коды для входа в приложения.\n\n1. Введите номер в приложении и выберите <b>«через Telegram»</b>.\n2. Код придёт в этот чат — введите его в приложении.\n\nНикому не сообщайте код.',
     copy: '📋 Скопировать код',
-    codeTitle: '🔐 <b>{project}</b>',
-    codeLine: 'Ваш код подтверждения:',
-    codeTtl: '⏱ Действует {minutes} мин',
-    codeWarn: '🚫 Никому не сообщайте код — даже сотрудникам.',
+    codeHead: '🔐 <b>{project}</b> · код подтверждения',
+    codeTtl: '⏱ Действует <b>{minutes} мин</b>',
+    codeWarn: 'Никому не сообщайте код — сотрудники никогда его не спрашивают.',
+    codeIgnore: 'Если вы не запрашивали код, просто проигнорируйте это сообщение.',
+    codeExpired: '⌛ <b>Срок действия кода истёк.</b> Запросите новый в приложении.',
+    codeUsed: '✅ <b>Код подтверждён.</b>',
     delivered: '✅ Код выше. Введите его в приложении.',
     adminPanel: '🛠 <b>Панель администратора</b>\n\nПроекты, история кодов, пользователи и настройки.',
     adminOpen: '🛠 Открыть панель',
@@ -70,10 +74,12 @@ const T: Record<Lang, Texts> = {
     blocked: '⛔ Codes to this number are restricted. Contact the administrator.',
     help: 'ℹ️ This bot sends sign-in codes for apps.\n\n1. Enter your number in the app and choose <b>«via Telegram»</b>.\n2. The code comes to this chat — enter it in the app.\n\nNever share the code.',
     copy: '📋 Copy code',
-    codeTitle: '🔐 <b>{project}</b>',
-    codeLine: 'Your verification code:',
-    codeTtl: '⏱ Valid for {minutes} min',
-    codeWarn: '🚫 Never share this code — not even with staff.',
+    codeHead: '🔐 <b>{project}</b> · verification code',
+    codeTtl: '⏱ Valid for <b>{minutes} min</b>',
+    codeWarn: 'Never share this code — staff will never ask for it.',
+    codeIgnore: 'If you didn’t request it, just ignore this message.',
+    codeExpired: '⌛ <b>This code has expired.</b> Request a new one in the app.',
+    codeUsed: '✅ <b>Code confirmed.</b>',
     delivered: '✅ The code is above. Enter it in the app.',
     adminPanel: '🛠 <b>Admin panel</b>\n\nProjects, code history, users and settings.',
     adminOpen: '🛠 Open panel',
@@ -101,13 +107,18 @@ export function codeMessage(lang: Lang, project: string, code: string, minutes: 
       .replace(/\{minutes\}/g, String(minutes))
       .replace(/\{code\}/g, `<code>${escapeHtml(code)}</code>`);
   }
+  // sarlavha · kod bloki (Telegram unga nusxalash tugmasini qo'shadi) · muddat · iqtibosdagi ogohlantirish
   return [
-    t(lang, 'codeTitle', { project }),
+    t(lang, 'codeHead', { project }),
     '',
-    t(lang, 'codeLine'),
-    `<code>${escapeHtml(code)}</code>`,
-    '',
+    `<pre>${escapeHtml(code)}</pre>`,
     t(lang, 'codeTtl', { minutes }),
-    t(lang, 'codeWarn'),
+    '',
+    `<blockquote>${t(lang, 'codeWarn')}\n<i>${t(lang, 'codeIgnore')}</i></blockquote>`,
   ].join('\n');
+}
+
+/** Muddati tugagan yoki ishlatilgan kod xabari: kodning o'zi chatda qolmaydi */
+export function closedCodeMessage(lang: Lang, project: string, used: boolean): string {
+  return [t(lang, 'codeHead', { project }), '', t(lang, used ? 'codeUsed' : 'codeExpired')].join('\n');
 }

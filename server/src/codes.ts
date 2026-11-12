@@ -1,13 +1,15 @@
 // Kodlarni yetkazish. Loyiha kod so'raydi → raqam Telegram'ga ulangan bo'lsa kod darhol boradi,
 // aks holda botga havola qaytariladi: foydalanuvchi «Start» bosib raqamini yuborgach kod yetkaziladi.
 import type { Contact, Delivery, Project, Store } from './store.js';
-import { codeMessage, langOf, type Lang } from './texts.js';
+import { closedCodeMessage, codeMessage, langOf, type Lang } from './texts.js';
 import { maskPhone, normalizePhone, randomCode, safeEqual } from './util.js';
 
 /** Telegram'ga xabar yuborish (testlarda soxtasi beriladi) */
 export interface Messenger {
-  /** false — foydalanuvchi botni to'xtatgan yoki chat topilmadi */
-  sendCode(chatId: number, html: string, code: string, lang: Lang): Promise<boolean>;
+  /** Yuborilgan xabar id'si; null — foydalanuvchi botni to'xtatgan yoki chat topilmadi */
+  sendCode(chatId: number, html: string, code: string, lang: Lang): Promise<number | null>;
+  /** Xabarni yakuniy matnga almashtiradi va nusxalash tugmasini olib tashlaydi (xato bo'lsa — jim) */
+  closeCode(chatId: number, messageId: number, html: string): Promise<void>;
 }
 
 export class GatewayError extends Error {
@@ -78,6 +80,8 @@ export class CodeService {
     if (d.attempts >= MAX_ATTEMPTS) throw new GatewayError(429, 'TOO_MANY_ATTEMPTS', 'Urinishlar tugadi, yangi kod so‘rang');
     if (d.code && safeEqual(d.code, input.code.trim())) {
       this.store.setStatus(d.id, 'USED');
+      // Telegram'dagi xabar darhol «tasdiqlandi» bo'ladi — kod chatda qolmaydi
+      void this.closeDue().catch(() => {});
       return { valid: true, attemptsLeft: MAX_ATTEMPTS - d.attempts };
     }
     const attempts = this.store.addAttempt(d.id);
@@ -107,6 +111,24 @@ export class CodeService {
     return { delivery: d, expired: d.status !== 'WAITING' || d.expiresAt <= new Date().toISOString() };
   }
 
+  /**
+   * Muddati tugagan yoki ishlatilgan kodlarning xabarlarini yopadi: kod va nusxalash tugmasi
+   * olib tashlanadi. Davriy ravishda chaqiriladi; nechta xabar yopilganini qaytaradi.
+   */
+  async closeDue(): Promise<number> {
+    let closed = 0;
+    for (const d of this.store.dueToClose()) {
+      const project = this.store.getProject(d.projectId);
+      if (d.tgChatId != null && d.tgMessageId != null && project) {
+        const lang = langOf(d.lang ?? this.store.contactByTg(d.tgChatId)?.lang);
+        await this.messenger.closeCode(d.tgChatId, d.tgMessageId, closedCodeMessage(lang, project.name, d.status === 'USED'));
+      }
+      this.store.markClosed(d.id);
+      closed += 1;
+    }
+    return closed;
+  }
+
   masked(phone: string): string {
     return maskPhone(phone);
   }
@@ -114,11 +136,10 @@ export class CodeService {
   private async send(d: Delivery, contact: Contact, project: Project): Promise<boolean> {
     const lang = langOf(d.lang ?? contact.lang);
     const minutes = Math.max(1, Math.round((Date.parse(d.expiresAt) - Date.now()) / 60_000));
-    const ok = await this.messenger.sendCode(contact.tgId, codeMessage(lang, project.name, d.code, minutes, project.template), d.code, lang);
-    if (ok) {
-      this.store.setStatus(d.id, 'SENT');
-      this.store.touchContact(contact.tgId);
-    }
-    return ok;
+    const messageId = await this.messenger.sendCode(contact.tgId, codeMessage(lang, project.name, d.code, minutes, project.template), d.code, lang);
+    if (messageId == null) return false;
+    this.store.markSent(d.id, contact.tgId, messageId);
+    this.store.touchContact(contact.tgId);
+    return true;
   }
 }

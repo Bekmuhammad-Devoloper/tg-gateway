@@ -65,6 +65,13 @@ const MIGRATIONS: string[] = [
     expires_at TEXT NOT NULL
   );
   `,
+  // 2: yuborilgan xabar — muddati tugagach yoki ishlatilgach bot uni tahrirlab, kodni olib tashlaydi
+  `
+  ALTER TABLE deliveries ADD COLUMN tg_chat_id INTEGER;
+  ALTER TABLE deliveries ADD COLUMN tg_message_id INTEGER;
+  ALTER TABLE deliveries ADD COLUMN tg_closed INTEGER NOT NULL DEFAULT 0;
+  CREATE INDEX deliveries_open_messages ON deliveries (tg_closed, expires_at) WHERE tg_message_id IS NOT NULL;
+  `,
 ];
 
 export function openDb(path: string): Db {

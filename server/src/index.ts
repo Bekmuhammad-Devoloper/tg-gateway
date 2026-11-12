@@ -60,10 +60,15 @@ const sweeper = setInterval(() => {
   const n = store.sweep();
   if (n) log(`expired: ${n}`);
 }, 60_000);
+// muddati tugagan kodlarning Telegram xabarlari tez yopilsin — kod chatda qolib ketmasin
+const closer = setInterval(() => {
+  codes?.closeDue().catch(e => log(`close: ${(e as Error).message}`));
+}, 15_000);
 
 const shutdown = async (signal: string): Promise<void> => {
   log(`${signal}: to'xtatilmoqda`);
   clearInterval(sweeper);
+  clearInterval(closer);
   if (config.botMode === 'polling') await bot.stop().catch(() => {});
   await app.close().catch(() => {});
   db.close();

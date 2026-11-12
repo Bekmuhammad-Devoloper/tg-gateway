@@ -40,6 +40,9 @@ export interface Delivery {
   createdAt: string;
   sentAt: string | null;
   expiresAt: string;
+  /** Telegram'dagi xabar (yuborilgan bo'lsa) */
+  tgChatId: number | null;
+  tgMessageId: number | null;
 }
 
 type Row = Record<string, unknown>;
@@ -79,6 +82,8 @@ const toDelivery = (r: Row): Delivery => ({
   createdAt: String(r.created_at),
   sentAt: r.sent_at == null ? null : String(r.sent_at),
   expiresAt: String(r.expires_at),
+  tgChatId: r.tg_chat_id == null ? null : Number(r.tg_chat_id),
+  tgMessageId: r.tg_message_id == null ? null : Number(r.tg_message_id),
 });
 
 /** Loyiha API kaliti: «tcg_» + tasodifiy satr. Bazada faqat xeshi turadi */
@@ -247,6 +252,24 @@ export class Store {
   setStatus(id: string, status: DeliveryStatus): void {
     const sentAt = status === 'SENT' ? nowIso() : null;
     this.db.prepare('UPDATE deliveries SET status = ?, sent_at = COALESCE(?, sent_at) WHERE id = ?').run(status, sentAt, id);
+  }
+
+  /** Kod Telegram'ga yetdi: holat SENT va xabar keyin yopilishi uchun eslab qolinadi */
+  markSent(id: string, chatId: number, messageId: number): void {
+    this.db
+      .prepare("UPDATE deliveries SET status = 'SENT', sent_at = ?, tg_chat_id = ?, tg_message_id = ? WHERE id = ?")
+      .run(nowIso(), chatId, messageId, id);
+  }
+
+  /** Yopilishi kerak bo'lgan xabarlar: kod ishlatilgan yoki muddati tugagan, xabar hali tahrirlanmagan */
+  dueToClose(limit = 50): Delivery[] {
+    return (this.db
+      .prepare("SELECT * FROM deliveries WHERE tg_message_id IS NOT NULL AND tg_closed = 0 AND (status = 'USED' OR expires_at <= ?) ORDER BY expires_at LIMIT ?")
+      .all(nowIso(), limit) as Row[]).map(toDelivery);
+  }
+
+  markClosed(id: string): void {
+    this.db.prepare('UPDATE deliveries SET tg_closed = 1 WHERE id = ?').run(id);
   }
 
   addAttempt(id: string): number {

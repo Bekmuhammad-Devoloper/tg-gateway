@@ -181,27 +181,36 @@ export function profilePhotos(bot: Bot, token: string): (who: 'bot' | number) =>
   };
 }
 
-/** Bot orqali kod yuborish; foydalanuvchi botni to'xtatgan bo'lsa false */
+/** Bot orqali kod yuborish (xabar id'si qaytadi; foydalanuvchi botni to'xtatgan bo'lsa null) va yopish */
 export function botMessenger(bot: Bot, log: (msg: string) => void): Messenger {
   return {
     async sendCode(chatId, html, code, lang) {
       const keyboard = new InlineKeyboard().copyText(t(lang, 'copy'), code);
       try {
-        await bot.api.sendMessage(chatId, html, { parse_mode: 'HTML', reply_markup: keyboard });
-        return true;
+        const sent = await bot.api.sendMessage(chatId, html, { parse_mode: 'HTML', reply_markup: keyboard, link_preview_options: { is_disabled: true } });
+        return sent.message_id;
       } catch (error) {
-        if (error instanceof GrammyError && error.error_code === 403) return false;
+        if (error instanceof GrammyError && error.error_code === 403) return null;
         // Loyiha shabloni HTML xatosi bo'lsa — oddiy matn bilan
         if (error instanceof GrammyError && error.error_code === 400) {
           try {
-            await bot.api.sendMessage(chatId, code, { reply_markup: keyboard });
-            return true;
+            const sent = await bot.api.sendMessage(chatId, code, { reply_markup: keyboard });
+            return sent.message_id;
           } catch {
-            return false;
+            return null;
           }
         }
         log(`send failed: ${(error as Error).message}`);
-        return false;
+        return null;
+      }
+    },
+    async closeCode(chatId, messageId, html) {
+      try {
+        // reply_markup berilmasa nusxalash tugmasi ham olib tashlanadi
+        await bot.api.editMessageText(chatId, messageId, html, { parse_mode: 'HTML' });
+      } catch (error) {
+        // xabar o'chirilgan yoki allaqachon o'zgartirilgan — qayta urinish shart emas
+        if (!(error instanceof GrammyError)) log(`close failed: ${(error as Error).message}`);
       }
     },
   };

@@ -10,11 +10,15 @@ const TOKEN = '123456:TEST-token-for-unit-tests-only-xxxxxxxx';
 
 class FakeMessenger implements Messenger {
   sent: Array<{ chatId: number; html: string; code: string }> = [];
+  closed: Array<{ chatId: number; messageId: number; html: string }> = [];
   reachable = true;
-  async sendCode(chatId: number, html: string, code: string): Promise<boolean> {
-    if (!this.reachable) return false;
+  async sendCode(chatId: number, html: string, code: string): Promise<number | null> {
+    if (!this.reachable) return null;
     this.sent.push({ chatId, html, code });
-    return true;
+    return 1000 + this.sent.length;
+  }
+  async closeCode(chatId: number, messageId: number, html: string): Promise<void> {
+    this.closed.push({ chatId, messageId, html });
   }
 }
 
@@ -47,7 +51,8 @@ describe('kod yetkazish', () => {
     expect(sent).toBe(1);
     expect(messenger.sent[0]).toMatchObject({ chatId: 1001, code: '4821' });
     expect(messenger.sent[0].html).toContain('YUMS Taxi');
-    expect(messenger.sent[0].html).toContain('<code>4821</code>');
+    expect(messenger.sent[0].html).toContain('<pre>4821</pre>');
+    expect(messenger.sent[0].html).toContain('<blockquote>');
     expect(codes.status(project, r.id).status).toBe('SENT');
     expect(codes.inspectToken(token)?.expired).toBe(true);
   });
@@ -139,6 +144,42 @@ describe('shlyuz yaratadigan kod (VERIFY)', () => {
     expect(d.status).toBe('EXPIRED');
     expect(d.code).toBe('');
     expect(await codes.deliverWaiting(link())).toBe(0);
+  });
+});
+
+describe('Telegram xabarini yopish', () => {
+  const expire = (id: string) =>
+    store.db.prepare('UPDATE deliveries SET expires_at = ? WHERE id = ?').run(new Date(Date.now() - 1000).toISOString(), id);
+
+  it('muddati tugagan kod xabari bir marta yopiladi, kod chatda qolmaydi', async () => {
+    link();
+    const r = await codes.request(project, { phone: '+998901234567', code: '4821', mode: 'SEND' });
+    expect(await codes.closeDue()).toBe(0);
+    expire(r.id);
+
+    expect(await codes.closeDue()).toBe(1);
+    expect(messenger.closed).toHaveLength(1);
+    expect(messenger.closed[0]).toMatchObject({ chatId: 1001, messageId: 1001 });
+    expect(messenger.closed[0].html).toContain('YUMS Taxi');
+    expect(messenger.closed[0].html).toContain('muddati tugadi');
+    expect(messenger.closed[0].html).not.toContain('4821');
+    expect(await codes.closeDue()).toBe(0);
+  });
+
+  it('ishlatilgan kod xabari darhol «tasdiqlandi» bo‘ladi', async () => {
+    link();
+    const r = await codes.request(project, { phone: '+998901234567', mode: 'VERIFY' });
+    codes.check(project, { id: r.id, code: messenger.sent[0].code });
+    await new Promise(resolve => setTimeout(resolve, 10));
+    expect(messenger.closed).toHaveLength(1);
+    expect(messenger.closed[0].html).toContain('tasdiqlandi');
+  });
+
+  it('yuborilmagan (kutayotgan) kodning xabari yo‘q — yopishga hech narsa yo‘q', async () => {
+    const r = await codes.request(project, { phone: '+998907777777', code: '1111', mode: 'SEND' });
+    expire(r.id);
+    expect(await codes.closeDue()).toBe(0);
+    expect(messenger.closed).toHaveLength(0);
   });
 });
 

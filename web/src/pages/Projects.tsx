@@ -11,11 +11,17 @@ function previewHtml(template: string, name: string, length: number, ttlSec: num
   const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const code = '123456789'.slice(0, length);
   const min = String(Math.max(1, Math.round(ttlSec / 60)));
-  const source = template.trim()
-    ? template
-    : `🔐 <b>{project}</b>\n\nTasdiqlash kodingiz:\n{code}\n\n⏱ {minutes} daqiqa amal qiladi\n🚫 Kodni hech kimga bermang — hatto xodimlarga ham.`;
-  return esc(source)
-    .replace(/&lt;(\/?)(b|i|u|s|code)&gt;/g, '<$1$2>')
+  // standart xabar — bot yuboradigan bilan bir xil: sarlavha, kod bloki, muddat, iqtibosdagi ogohlantirish
+  if (!template.trim()) {
+    return [
+      `🔐 <b>${esc(name || 'Loyiha')}</b> · tasdiqlash kodi`,
+      `<pre>${code}</pre>`,
+      `⏱ <b>${min} daqiqa</b> amal qiladi`,
+      '<blockquote>Kodni hech kimga bermang — xodimlar uni hech qachon so‘ramaydi.<br><i>Kodni siz so‘ramagan bo‘lsangiz, bu xabarni e’tiborsiz qoldiring.</i></blockquote>',
+    ].join('<br>');
+  }
+  return esc(template)
+    .replace(/&lt;(\/?)(b|i|u|s|code|pre|blockquote)&gt;/g, '<$1$2>')
     .replace(/\{project\}/g, esc(name || 'Loyiha'))
     .replace(/\{minutes\}/g, min)
     .replace(/\{code\}/g, `<code>${code}</code>`)

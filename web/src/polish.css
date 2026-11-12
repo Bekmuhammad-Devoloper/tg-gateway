@@ -406,3 +406,21 @@ h3 {
     animation: none;
   }
 }
+
+/* ---- Telegram xabari ko'rinishi (loyiha tahriri) ---- */
+.bubble pre {
+  margin: 8px 0 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  font: 700 20px/1.2 var(--mono);
+  letter-spacing: 0.12em;
+}
+.bubble blockquote {
+  margin: 8px 0 0;
+  padding: 4px 0 4px 10px;
+  border-left: 3px solid var(--accent);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+  font-size: 13.5px;
+}
